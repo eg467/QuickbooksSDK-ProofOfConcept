@@ -110,7 +110,6 @@ namespace QuickbooksApi
         }
 
     }
-
     public interface IQbXMLConnection : IDisposable
     {
         void Connect();
@@ -120,7 +119,6 @@ namespace QuickbooksApi
 
         void ReturnSession(QbXmlSession session);
     }
-
     public class QbXmlSession
     {
   
@@ -145,7 +143,6 @@ namespace QuickbooksApi
         public string ProcessRequest(string requestXml) =>
             this.Processor.ProcessRequest(Ticket, requestXml);
     }
-
     public class QbXmlProcessorConnectionWrapper
     {
         public const string AppID = "";
@@ -153,14 +150,17 @@ namespace QuickbooksApi
 
         public static RequestProcessor2Class CreateOpenQbConnection()
         {
+            
             var requestProcessor = new RequestProcessor2Class();
             requestProcessor.OpenConnection(AppID, AppName);
+            Debug.WriteLine("CONNECTION OPENED");
             return requestProcessor;
         }
 
         public static void CloseQbConnection(RequestProcessor2Class? processor)
         {
             processor?.CloseConnection();
+            Debug.WriteLine("CONNECTION CLOSED");
         }
 
         /// <summary>
@@ -176,15 +176,16 @@ namespace QuickbooksApi
             {
                 throw new InvalidOperationException("A QB session ticket was not created.");
             }
+            Debug.WriteLine($"SESSION OPENED, ticket {ticket}");
             return ticket;
         }
 
         public static void CloseQbSession(RequestProcessor2? processor, string? ticket)
         {
             if (processor == null || string.IsNullOrEmpty(ticket)) return;
+            Debug.WriteLine($"SESSION CLOSED, ticket {ticket}");
             processor.EndSession(ticket);
         }
-            
     }
 
     public enum SessionCreationMode
@@ -205,7 +206,7 @@ namespace QuickbooksApi
         };
     }
 
-    public class QbXMLSingleSessionConnection : IQbXMLConnection, IDisposable
+    public sealed class QbXMLSingleSessionConnection : IQbXMLConnection, IDisposable
     {
         private RequestProcessor2Class? _processor;
         private QbXmlSession? _session;
@@ -244,9 +245,11 @@ namespace QuickbooksApi
         }
     }
 
-    public class QbXMLMultiSessionSingleConnection : IQbXMLConnection, IDisposable
+    public sealed class QbXMLMultiSessionSingleConnection : IQbXMLConnection, IDisposable
     {
         private RequestProcessor2Class? _processor;
+        private readonly static object _syncObj = new();
+        private string? _lastSessionTicket;
 
         public void Connect()
         {
@@ -255,6 +258,11 @@ namespace QuickbooksApi
 
         public void Disconnect()
         {
+            if(_processor != null && _lastSessionTicket != null)
+            {
+                QbXmlProcessorConnectionWrapper.CloseQbSession(_processor, _lastSessionTicket);
+            }
+
             QbXmlProcessorConnectionWrapper.CloseQbConnection(_processor);
             _processor = null;
         }
@@ -272,13 +280,23 @@ namespace QuickbooksApi
             {
                 Connect();
             }
+
+            // Beginning two sessions in a row throws an error from Quickbooks, so prevent that
+            var timeout = TimeSpan.FromSeconds(30);
+            if(!Monitor.TryEnter(_syncObj, timeout))
+            {
+                throw new InvalidOperationException("Could not obtain a session because another has been in progress for too long.");
+            }
             string ticket = QbXmlProcessorConnectionWrapper.CreateQbSession(_processor!);
+            _lastSessionTicket = ticket;
             return new(_processor!, ticket);
         }
 
         public void ReturnSession(QbXmlSession session)
         {
             QbXmlProcessorConnectionWrapper.CloseQbSession(session.Processor, session.Ticket);
+            _lastSessionTicket = null;
+            Monitor.Exit(_syncObj);
         }
     }
 
