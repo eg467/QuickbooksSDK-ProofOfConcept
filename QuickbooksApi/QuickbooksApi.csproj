@@ -7,18 +7,28 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <COMReference Include="QBFC15Lib">
+    <COMReference Include="QBFC16Lib">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>0</VersionMinor>
       <VersionMajor>1</VersionMajor>
-      <Guid>26d049b7-5d02-4ff9-a803-c783f54a307e</Guid>
+      <Guid>1d05360b-2536-4277-83fd-bdf639e20f9e</Guid>
       <Lcid>0</Lcid>
       <Isolated>false</Isolated>
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
+    <COMReference Include="QBXMLRP2Lib">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>4351618f-9059-4a79-b638-dcb8b97b3262</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="QbSync.QbXml" Version="3.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
