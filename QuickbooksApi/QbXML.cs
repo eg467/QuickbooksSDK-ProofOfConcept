@@ -17,7 +17,7 @@ namespace QuickbooksApi
     /// <summary>
     /// Creates a session for QB queries only if necessary.
     /// </summary>
-    public class QbXmlQueriesFactory: IDisposable
+    public sealed class QbXmlQueriesFactory: IDisposable
     {
         private IQbXMLConnection _connection;
         private QbXmlSession? _session;
@@ -111,7 +111,7 @@ namespace QuickbooksApi
 
     }
 
-    public interface IQbXMLConnection
+    public interface IQbXMLConnection : IDisposable
     {
         void Connect();
         void Disconnect();
@@ -262,6 +262,7 @@ namespace QuickbooksApi
         public void Dispose()
         {
             // TODO: Track and disconnect open sessions
+            Debug.WriteLine("Disposing connection");
             Disconnect();
         }
 
@@ -286,6 +287,10 @@ namespace QuickbooksApi
         public void Connect()         {        }
 
         public void Disconnect()        {        }
+
+        public void Dispose()
+        {
+        }
 
         public QbXmlSession GetSession()
         {

@@ -22,7 +22,7 @@ IQbXMLConnection CreateConnection()
 }
 var qbXmlConnection = CreateConnection();
 
-builder.Services.AddSingleton(qbXmlConnection);
+builder.Services.AddSingleton<IQbXMLConnection>(_ => qbXmlConnection);
 builder.Services.AddScoped(_ => new QbXmlQueriesFactory(qbXmlConnection));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
