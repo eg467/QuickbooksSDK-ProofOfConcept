@@ -32,6 +32,7 @@ namespace QuickbooksApi.Controllers
         public int? MaxResults { get; set; }
         public bool? Active { get; set; }
         public List<string>? FullName { get; set; }
+        public List<string>? ReturnedFields { get; set; }
     }
 
 }

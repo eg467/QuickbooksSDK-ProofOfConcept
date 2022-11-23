@@ -90,7 +90,7 @@ namespace QuickbooksApi
                 innerRequest.ActiveStatus = queryParameters.Active.Value ? ActiveStatus.ActiveOnly : ActiveStatus.InactiveOnly;
             }
 
-            if(queryParameters.FullName != null && queryParameters.FullName.Any())
+            if(queryParameters.FullName?.Any() == true)
             {
                 innerRequest.FullName = queryParameters.FullName;
             }
@@ -103,6 +103,12 @@ namespace QuickbooksApi
             if(queryParameters.ModifiedSince.HasValue)
             {
                 innerRequest.FromModifiedDate = new DATETIMETYPE(queryParameters.ModifiedSince.Value);
+            }
+
+            if(queryParameters.ReturnedFields?.Any() == true)
+            {
+                // See the response fields (except PascalCase) for options
+                innerRequest.IncludeRetElement = queryParameters.ReturnedFields.ToArray();
             }
 
             var response = Query<CustomerQueryRsType>(innerRequest);
